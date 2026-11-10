@@ -5,6 +5,11 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.24.3'
