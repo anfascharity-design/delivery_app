@@ -2,13 +2,18 @@ name: Build APK
 on: [push]
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.24.3'
           channel: 'stable'
+      - name: Create fresh Flutter project and inject main.dart
+        run: |
+          flutter create . --org com.delivery --project-name delivery_app --platforms=android
+          mkdir -p lib
+          if [ -f main.dart ]; then mv main.dart lib/main.dart; fi
       - run: flutter pub get
       - run: flutter build apk --release
       - uses: actions/upload-artifact@v4
