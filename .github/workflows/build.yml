@@ -19,11 +19,29 @@ jobs:
           flutter-version: '3.24.3'
           channel: 'stable'
 
-      - name: Build App
+      - name: Build App with Connectivity and Logo
         run: |
           flutter create . --org com.tair.alzagel --project-name tair_alzagel --platforms=android
+          mkdir -p assets
           
-          # تعديل اسم التطبيق وصلاحيات الإنترنت في أندرويد
+          # جلب اللوجو إن وجد
+          if [ -f logo.png ]; then
+            cp logo.png assets/logo.png
+          elif [ -f logo.jpg ]; then
+            cp logo.jpg assets/logo.png
+          fi
+
+          # إضافة حزمة فحص الإنترنت بشكل نظيف وآمن لملف pubspec.yaml
+          python3 -c '
+          with open("pubspec.yaml", "r", encoding="utf-8") as f:
+              content = f.read()
+          if "connectivity_plus" not in content:
+              content = content.replace("dependencies:", "dependencies:\n  connectivity_plus: ^6.0.5")
+          with open("pubspec.yaml", "w", encoding="utf-8") as f:
+              f.write(content)
+          '
+
+          # تعديل اسم التطبيق وصلاحيات الإنترنت وحالة الشبكة في أندرويد
           MANIFEST_PATH="android/app/src/main/AndroidManifest.xml"
           if [ -f "$MANIFEST_PATH" ]; then
             sed -i 's/android:label=".*"/android:label="طير الزاجل"/g' "$MANIFEST_PATH"
