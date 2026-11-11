@@ -1,50 +1,27 @@
 name: Build APK
+
 on: [push]
+
 jobs:
   build:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
+
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.24.3'
           channel: 'stable'
-      - name: Setup project, configure icon, internet & dependencies, and build
+
+      - name: Build App
         run: |
           flutter create . --org com.tair.alzagel --project-name tair_alzagel --platforms=android
-          mkdir -p lib assets
-          if [ -f main.dart ]; then mv main.dart lib/main.dart; fi
-          
-          # نسخ اللوجو إلى مجلد assets
-          if [ -f logo.png ]; then
-            cp logo.png assets/logo.png
-          elif [ -f logo.jpg ]; then
-            cp logo.jpg assets/logo.png
-          fi
-          
-          # حقن الحزم وإعدادات الأيقونة مباشرة وبكل أمان داخل pubspec.yaml
-          cat << 'EOF' >> pubspec.yaml
-
-dependencies:
-  connectivity_plus: ^6.0.5
-
-dev_dependencies:
-  flutter_launcher_icons: "^0.13.1"
-
-flutter_launcher_icons:
-  image_path: "assets/logo.png"
-  android: true
-  ios: true
-  min_sdk_android: 21
-EOF
-
-          flutter pub get
-          flutter pub run flutter_launcher_icons
           
           # تعديل اسم التطبيق وصلاحيات الإنترنت في أندرويد
           MANIFEST_PATH="android/app/src/main/AndroidManifest.xml"
@@ -53,9 +30,10 @@ EOF
             sed -i '/<\/manifest>/i \    <uses-permission android:name="android.permission.INTERNET"/>' "$MANIFEST_PATH"
             sed -i '/<\/manifest>/i \    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>' "$MANIFEST_PATH"
           fi
-          
+
       - run: flutter pub get
       - run: flutter build apk --release
+
       - uses: actions/upload-artifact@v4
         with:
           name: app-release
