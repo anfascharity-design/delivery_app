@@ -20,35 +20,33 @@ jobs:
           mkdir -p lib assets
           if [ -f main.dart ]; then mv main.dart lib/main.dart; fi
           
-          # نقل اللوجو إن وجد
-          if ls logo.* 1> /dev/null 2>&1; then
-            cp logo.* assets/logo.png
-          elif ls *.png 1> /dev/null 2>&1; then
-            cp *.png assets/logo.png
+          # نسخ اللوجو إلى مجلد assets
+          if [ -f logo.png ]; then
+            cp logo.png assets/logo.png
+          elif [ -f logo.jpg ]; then
+            cp logo.jpg assets/logo.png
           fi
           
-          # إضافة الحزم وإعدادات الأيقونة في pubspec.yaml بطريقة نظيفة
-          python3 -c '
-          with open("pubspec.yaml", "r", encoding="utf-8") as f:
-              content = f.read()
-          
-          # إضافة مكتبات الاتصال والأيقونات إذا لم تكن موجودة
-          if "connectivity_plus" not in content:
-              content = content.replace("dependencies:", "dependencies:\n  connectivity_plus: ^6.0.5")
-          
-          if "flutter_launcher_icons" not in content:
-              content += "\nflutter_launcher_icons:\n  image_path: \"assets/logo.png\"\n  android: true\n  ios: true\n  min_sdk_android: 21\n"
-          
-          with open("pubspec.yaml", "w", encoding="utf-8") as f:
-              f.write(content)
-          '
-          
+          # حقن الحزم وإعدادات الأيقونة مباشرة وبكل أمان داخل pubspec.yaml
+          cat << 'EOF' >> pubspec.yaml
+
+dependencies:
+  connectivity_plus: ^6.0.5
+
+dev_dependencies:
+  flutter_launcher_icons: "^0.13.1"
+
+flutter_launcher_icons:
+  image_path: "assets/logo.png"
+  android: true
+  ios: true
+  min_sdk_android: 21
+EOF
+
           flutter pub get
-          if [ -f assets/logo.png ]; then
-            flutter pub run flutter_launcher_icons
-          fi
+          flutter pub run flutter_launcher_icons
           
-          # تعديل اسم التطبيق وإضافة صلاحية الإنترنت في أندرويد
+          # تعديل اسم التطبيق وصلاحيات الإنترنت في أندرويد
           MANIFEST_PATH="android/app/src/main/AndroidManifest.xml"
           if [ -f "$MANIFEST_PATH" ]; then
             sed -i 's/android:label=".*"/android:label="طير الزاجل"/g' "$MANIFEST_PATH"
