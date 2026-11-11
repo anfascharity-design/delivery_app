@@ -14,7 +14,7 @@ jobs:
         with:
           flutter-version: '3.24.3'
           channel: 'stable'
-      - name: Setup project and build
+      - name: Setup project, internet permission and build
         run: |
           flutter create . --org com.tair.alzagel --project-name tair_alzagel --platforms=android
           mkdir -p lib assets
@@ -22,7 +22,6 @@ jobs:
           
           if [ -f logo.png ]; then
             cp logo.png assets/logo.png
-            # التأكد من إضافة حزم الأيقونات بشكل صحيح
             echo "" >> pubspec.yaml
             echo "dev_dependencies:" >> pubspec.yaml
             echo "  flutter_launcher_icons: \"^0.13.1\"" >> pubspec.yaml
@@ -37,10 +36,12 @@ jobs:
             flutter pub run flutter_launcher_icons
           fi
           
-          # تعديل اسم التطبيق
+          # تعديل اسم التطبيق وإضافة صلاحية الإنترنت
           MANIFEST_PATH="android/app/src/main/AndroidManifest.xml"
           if [ -f "$MANIFEST_PATH" ]; then
             sed -i 's/android:label=".*"/android:label="طير الزاجل"/g' "$MANIFEST_PATH"
+            # إضافة إذن الإنترنت قبل الوسم الأخير
+            sed -i '/<\/manifest>/i \    <uses-permission android:name="android.permission.INTERNET"/>' "$MANIFEST_PATH"
           fi
           
       - run: flutter pub get
