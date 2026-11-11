@@ -56,7 +56,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('طير الزاجل - خدمات الديلفري', style: TextStyle(color: Colors.white)),
+        title: const Text('طير الزاجل - خدمات التوصيل', style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.orange[800],
         actions: [
           IconButton(
@@ -93,12 +93,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
                       ),
-                      onPressed: () {
-                        _checkInternetConnection();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('جاري تحديث البيانات...')),
-                        );
-                      },
+                      onPressed: _checkInternetConnection,
                       icon: const Icon(Icons.wifi),
                       label: const Text('التحقق من الاتصال'),
                     ),
