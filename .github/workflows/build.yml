@@ -14,32 +14,30 @@ jobs:
         with:
           flutter-version: '3.24.3'
           channel: 'stable'
-      - name: Setup project, add logo and change name
+      - name: Setup project and build
         run: |
           flutter create . --org com.tair.alzagel --project-name tair_alzagel --platforms=android
           mkdir -p lib assets
           if [ -f main.dart ]; then mv main.dart lib/main.dart; fi
           
-          # التحقق من وجود الشعار ونسخه
           if [ -f logo.png ]; then
             cp logo.png assets/logo.png
-            # إضافة إعدادات الأيقونة لملف pubspec.yaml
-            cat << 'EOF' >> pubspec.yaml
-
-dev_dependencies:
-  flutter_launcher_icons: "^0.13.1"
-
-flutter_launcher_icons:
-  android: "launcher_icon"
-  ios: true
-  image_path: "logo.png"
-  min_sdk_android: 21
-EOF
+            # التأكد من إضافة حزم الأيقونات بشكل صحيح
+            echo "" >> pubspec.yaml
+            echo "dev_dependencies:" >> pubspec.yaml
+            echo "  flutter_launcher_icons: \"^0.13.1\"" >> pubspec.yaml
+            echo "" >> pubspec.yaml
+            echo "flutter_launcher_icons:" >> pubspec.yaml
+            echo "  android: \"launcher_icon\"" >> pubspec.yaml
+            echo "  ios: true" >> pubspec.yaml
+            echo "  image_path: \"logo.png\"" >> pubspec.yaml
+            echo "  min_sdk_android: 21" >> pubspec.yaml
+            
             flutter pub get
             flutter pub run flutter_launcher_icons
           fi
           
-          # تعديل اسم التطبيق في ملف الإعدادات للأندرويد
+          # تعديل اسم التطبيق
           MANIFEST_PATH="android/app/src/main/AndroidManifest.xml"
           if [ -f "$MANIFEST_PATH" ]; then
             sed -i 's/android:label=".*"/android:label="طير الزاجل"/g' "$MANIFEST_PATH"
