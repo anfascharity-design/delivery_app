@@ -1,72 +1,54 @@
 import 'package:flutter/material.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 void main() {
-  runApp(const CustomerApp());
+  runApp(const TairAlzagelApp());
 }
 
-class CustomerApp extends StatelessWidget {
-  const CustomerApp({Key? key}) : super(key: key);
+class TairAlzagelApp extends StatelessWidget {
+  const TairAlzagelApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      title: 'طير الزاجل',
       debugShowCheckedModeBanner: false,
-      title: 'تطبيق التوصيل - الزبون',
       theme: ThemeData(
-        primarySwatch: Colors.deepOrange,
-        fontFamily: 'Roboto',
+        primarySwatch: Colors.orange,
+        scaffoldBackgroundColor: Colors.white,
       ),
-      home: const OrderScreen(),
+      home: const HomeScreen(),
     );
   }
 }
 
-class OrderScreen extends StatefulWidget {
-  const OrderScreen({Key? key}) : super(key: key);
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
 
   @override
-  State<OrderScreen> createState() => _OrderScreenState();
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _OrderScreenState extends State<OrderScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _detailsController = TextEditingController();
-  final TextEditingController _addressController = TextEditingController();
+class _HomeScreenState extends State<HomeScreen> {
+  bool _isConnected = true;
 
-  String _selectedService = 'مطاعم وجبات';
-  final List<String> _services = ['مطاعم وجبات', 'سوبرماركت ومقاضي', 'توصيل طرد خاص'];
+  @override
+  void initState() {
+    super.initState();
+    _checkInternetConnection();
+  }
 
-  void _submitOrder() {
-    if (_formKey.currentState!.validate()) {
-      // تفاصيل الطلب جاهزة للإرسال إلى قاعدة البيانات
-      final orderData = {
-        'customerName': _nameController.text,
-        'customerPhone': _phoneController.text,
-        'serviceType': _selectedService,
-        'addressDetails': _addressController.text,
-        'orderDetails': _detailsController.text,
-        'status': 'جديد',
-        'timestamp': DateTime.now().toString(),
-      };
-
-      showDialog(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('تم إرسال الطلب بنجاح!'),
-          content: Text('شكراً يا ${_nameController.text}، سيتم التواصل معك قريباً لتأكيد الطلب.'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(ctx).pop();
-                _detailsController.clear();
-              },
-              child: const Text('حسناً'),
-            ),
-          ],
-        ),
-      );
+  // دالة للتحقق من الاتصال بالإنترنت
+  Future<void> _checkInternetConnection() async {
+    var connectivityResult = await (Connectivity().checkConnectivity());
+    if (connectivityResult.contains(ConnectivityResult.none)) {
+      setState(() {
+        _isConnected = false;
+      });
+    } else {
+      setState(() {
+        _isConnected = true;
+      });
     }
   }
 
@@ -74,111 +56,82 @@ class _OrderScreenState extends State<OrderScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('طلب توصيل جديد'),
-        centerTitle: true,
+        title: const Text('طير الزاجل - خدمات الديلفري', style: TextStyle(color: Colors.white)),
+        backgroundColor: Colors.orange[800],
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh, color: Colors.white),
+            onPressed: _checkInternetConnection,
+            tooltip: 'إعادة المحاولة',
+          )
+        ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Text(
-                'بيانات الطلب والتوصيل',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                textAlign: TextAlign.right,
-              ),
-              const SizedBox(height: 15),
-
-              // الاسم
-              TextFormField(
-                controller: _nameController,
-                textAlign: TextAlign.right,
-                decoration: const InputDecoration(
-                  labelText: 'الاسم الكامل',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.person),
+      body: Center(
+        child: _isConnected
+            ? Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset('assets/logo.png', height: 150, errorBuilder: (context, error, stackTrace) {
+                      return const Icon(Icons.delivery_dining, size: 100, color: Colors.orange);
+                    }),
+                    const SizedBox(height: 20),
+                    const Text(
+                      'أهلاً بك في طير الزاجل',
+                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87),
+                    ),
+                    const SizedBox(height: 10),
+                    const Text(
+                      'أسرع خدمات التوصيل بين يديك',
+                      style: TextStyle(fontSize: 16, color: Colors.grey),
+                    ),
+                    const SizedBox(height: 30),
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange[800],
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+                      ),
+                      onPressed: () {
+                        _checkInternetConnection();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('جاري تحديث البيانات...')),
+                        );
+                      },
+                      icon: const Icon(Icons.wifi),
+                      label: const Text('التحقق من الاتصال'),
+                    ),
+                  ],
                 ),
-                validator: (val) => val == null || val.isEmpty ? 'يرجى إدخال الاسم' : null,
+              )
+            : Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.signal_wifi_off, size: 80, color: Colors.red),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'لا يوجد اتصال بالإنترنت',
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.red),
+                  ),
+                  const SizedBox(height: 10),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 40),
+                    textDirection: TextDirection.rtl,
+                    child: Text(
+                      'يرجى التأكد من شبكة الإنترنت وإعادة المحاولة لاستخدام خدمات التطبيق.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 16, color: Colors.grey),
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.orange[800], foregroundColor: Colors.white),
+                    onPressed: _checkInternetConnection,
+                    child: const Text('إعادة المحاولة'),
+                  ),
+                ],
               ),
-              const SizedBox(height: 12),
-
-              // رقم الهاتف
-              TextFormField(
-                controller: _phoneController,
-                keyboardType: TextInputType.phone,
-                textAlign: TextAlign.right,
-                decoration: const InputDecoration(
-                  labelText: 'رقم الهاتف / الواتساب',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.phone),
-                ),
-                validator: (val) => val == null || val.isEmpty ? 'يرجى إدخال رقم الهاتف' : null,
-              ),
-              const SizedBox(height: 12),
-
-              // نوع الخدمة
-              DropdownButtonFormField<String>(
-                value: _selectedService,
-                decoration: const InputDecoration(
-                  labelText: 'اختر نوع الخدمة',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.category),
-                ),
-                items: _services.map((String service) {
-                  return DropdownMenuItem(
-                    value: service,
-                    child: Text(service),
-                  );
-                }).toList(),
-                onChanged: (val) {
-                  setState(() {
-                    _selectedService = val!;
-                  });
-                },
-              ),
-              const SizedBox(height: 12),
-
-              // العنوان والمعالم البارزة
-              TextFormField(
-                controller: _addressController,
-                textAlign: TextAlign.right,
-                decoration: const InputDecoration(
-                  labelText: 'العنوان (المنطقة / معلم بارز)',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.location_on),
-                ),
-                validator: (val) => val == null || val.isEmpty ? 'يرجى إدخال العنوان' : null,
-              ),
-              const SizedBox(height: 12),
-
-              // تفاصيل اغراض الطلب
-              TextFormField(
-                controller: _detailsController,
-                maxLines: 3,
-                textAlign: TextAlign.right,
-                decoration: const InputDecoration(
-                  labelText: 'تفاصيل الطلب (اكتب الطلبات أو المكان المطلوب الشراء منه)',
-                  border: OutlineInputBorder(),
-                  alignLabelWithHint: true,
-                ),
-                validator: (val) => val == null || val.isEmpty ? 'يرجى كتابة تفاصيل الطلب' : null,
-              ),
-              const SizedBox(height: 20),
-
-              // زر إرسال الطلب
-              ElevatedButton(
-                onPressed: _submitOrder,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 15),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-                child: const Text('إرسال الطلب الآن', style: TextStyle(fontSize: 18)),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
