@@ -14,11 +14,37 @@ jobs:
         with:
           flutter-version: '3.24.3'
           channel: 'stable'
-      - name: Create fresh Flutter project and inject main.dart
+      - name: Setup project, add logo and change name
         run: |
-          flutter create . --org com.delivery --project-name delivery_app --platforms=android
-          mkdir -p lib
+          flutter create . --org com.tair.alzagel --project-name tair_alzagel --platforms=android
+          mkdir -p lib assets
           if [ -f main.dart ]; then mv main.dart lib/main.dart; fi
+          
+          # التحقق من وجود الشعار ونسخه
+          if [ -f logo.png ]; then
+            cp logo.png assets/logo.png
+            # إضافة إعدادات الأيقونة لملف pubspec.yaml
+            cat << 'EOF' >> pubspec.yaml
+
+dev_dependencies:
+  flutter_launcher_icons: "^0.13.1"
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "logo.png"
+  min_sdk_android: 21
+EOF
+            flutter pub get
+            flutter pub run flutter_launcher_icons
+          fi
+          
+          # تعديل اسم التطبيق في ملف الإعدادات للأندرويد
+          MANIFEST_PATH="android/app/src/main/AndroidManifest.xml"
+          if [ -f "$MANIFEST_PATH" ]; then
+            sed -i 's/android:label=".*"/android:label="طير الزاجل"/g' "$MANIFEST_PATH"
+          fi
+          
       - run: flutter pub get
       - run: flutter build apk --release
       - uses: actions/upload-artifact@v4
